@@ -1,0 +1,121 @@
+services:
+  # === Frontend ===
+  streamlit:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.streamlit
+    ports: ["8501:8501"]
+    env_file: .env
+    depends_on:
+      fastapi:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  # === Backend ===
+  fastapi:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.fastapi
+    ports: ["8000:8000"]
+    env_file: .env
+    depends_on:
+      chromadb:
+        condition: service_started
+      langfuse:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1536M
+
+  # === Vector DB ===
+  chromadb:
+    image: chromadb/chroma:latest
+    ports: ["8100:8000"]
+    volumes:
+      - chroma_data:/chroma/chroma
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 512M
+
+  # === Observability ===
+  langfuse:
+    image: langfuse/langfuse:latest
+    ports: ["3000:3000"]
+    environment:
+      DATABASE_URL: postgresql://${LANGFUSE_PG_USER}:${LANGFUSE_PG_PASSWORD}@langfuse-postgres:5432/langfuse
+      NEXTAUTH_SECRET: ${LANGFUSE_SECRET}
+      NEXTAUTH_URL: http://localhost:3000
+    depends_on:
+      langfuse-postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 512M
+
+  langfuse-postgres:
+    image: postgres:16-alpine
+    volumes:
+      - langfuse_pg_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: langfuse
+      POSTGRES_USER: ${LANGFUSE_PG_USER}
+      POSTGRES_PASSWORD: ${LANGFUSE_PG_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LANGFUSE_PG_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports: ["9090:9090"]
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+
+  grafana:
+    image: grafana/grafana:latest
+    ports: ["3100:3000"]
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+
+volumes:
+  chroma_data:
+  langfuse_pg_data:
+  prometheus_data:
+  grafana_data:

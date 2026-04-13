@@ -21,14 +21,16 @@ graph TD
 
     Router -- "plan_trip" --> Planner
     Router -- "change_plan" --> Planner
-    Router -- "ask_question" --> InfoRAG
+    Router -- "ask_question" --> Responder
     Router -- "export" --> Responder
 
     subgraph planning ["Цикл планирования"]
-        Planner["Planner Agent"] --> InfoRAG["Info/RAG Agent"]
-        InfoRAG --> Booking["Booking Agent"]
-        Booking --> Mapper["Mapper Agent"]
-        Mapper --> Validator{"Validator"}
+        Planner["<b>Planner Agent</b><br/>Разбивка по дням,<br/>использует OpenTripMap tool"]
+        Booking["<b>Booking Agent</b><br/>Поиск отелей/рейсов"]
+        Mapper["<b>Mapper Agent</b><br/>Построение маршрута"]
+        
+        Planner --> Booking
+        Booking --> Mapper
     end
 
     Validator -- "ok" --> Responder["Responder"]

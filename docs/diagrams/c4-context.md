@@ -11,9 +11,10 @@ flowchart TB
         system["<b>Trip Planner AI</b><br/>Мульти-агентная система<br/>планирования путешествий<br/>(FastAPI + LangGraph + Streamlit)"]
     end
 
-    yandexgpt[/"<b>YandexGPT API</b><br/>Генерация текста,<br/>классификация, эмбеддинги"/]
-    mapsapi[/"<b>Google Maps API</b><br/>Геокодирование,<br/>построение маршрутов,<br/>Places"/]
-    bookingapi[/"<b>Booking APIs</b><br/>Поиск отелей,<br/>авиабилетов"/]
+    yandexgpt[/"<b>YandexGPT/OpenRouter API</b><br/>Генерация текста,<br/>классификация, эмбеддинги"/]
+    orsapi[/"<b>OpenRouteService API</b><br/>Построение маршрутов<br/>(бесплатно, 2000/день)"/]
+    amadeus[/"<b>Amadeus API</b><br/>Поиск отелей/рейсов<br/>(бесплатно, 2000/месяц)"/]
+    nominatim[/"<b>Nominatim (OSM)</b><br/>Геокодинг, POI<br/>(бесплатно, 1/сек)"/]
     chromadb[("<b>ChromaDB</b><br/>Векторная БД<br/>знаний о местах")]
     langfuse["<b>Langfuse</b><br/>Трейсинг и<br/>observability"]
     prometheus["<b>Prometheus + Grafana</b><br/>Метрики и алертинг"]
@@ -34,8 +35,8 @@ flowchart TB
 | Граница | Внутри | Снаружи |
 |:---|:---|:---|
 | **Trip Planner AI** | Streamlit UI, FastAPI Backend, LangGraph Orchestrator, агенты (Planner, Info/RAG, Booking, Mapper), Session State, ChromaDB | — |
-| **Внешние LLM** | — | YandexGPT API (генерация, эмбеддинги) |
-| **Внешние Data APIs** | — | Google Maps API (геоданные), Booking APIs (отели, билеты) |
+| **Внешние LLM** | — | YandexGPT/OpenRouter API (генерация, эмбеддинги) |
+| **Внешние Data APIs** | — | OpenRouteService (маршруты), Amadeus (отели/рейсы), Nominatim (геокодинг) |
 | **Observability** | — | Langfuse (трейсинг), Prometheus + Grafana (метрики, алерты) |
 
 ## Потоки данных на уровне контекста

@@ -36,6 +36,12 @@
 
 ### Технологии:
 
+**Бесплатные API для PoC:**
+- OpenRouteService - маршруты (2000 запросов/день)
+- Amadeus API - отели и рейсы (2000 вызовов/месяц)
+- Nominatim (OpenStreetMap) - геокодинг (1 запрос/сек)
+- OpenRouter - бесплатные LLM модели (Llama 3.3 70B, Gemma 4 31B)
+
 1. **Агентная система**:
 
    * Мульти-агентная система, где несколько агентов выполняют разные функции: один агент генерирует маршрут, второй работает с бронированиями, третий находит релевантную информацию для маршрута.
@@ -54,4 +60,136 @@
 
 5. **Мессенджеры и интеграции с веб-платформами** (не планируется на первом этапе проекта):
 
-   * Cистема может интегрироваться с месседжерами, соц-сетями (в том числе, с использованием агентов для поиска или размещения контента в них, для выявления предпочтений).
+   * Cистема может интегрироваться с мессендерами, соц-сетями (в том числе, с использованием агентов для поиска или размещения контента в них, для выявления предпочтений).
+
+---
+
+## Установка и запуск
+
+### Требования
+
+- Docker и Docker Compose
+- Python 3.11+ (для локальной разработки)
+- API ключи для YandexGPT, Google Maps, Booking API, Langfuse
+
+### Быстрый старт
+
+1. **Клонирование репозитория**
+   ```bash
+   git clone <repository-url>
+   cd trip-planner-ai
+   ```
+
+2. **Настройка переменных окружения**
+   ```bash
+   cp .env.example .env
+   # Отредактируйте .env и добавьте реальные API ключи
+   ```
+
+3. **Запуск всех сервисов**
+   ```bash
+   docker compose up -d
+   ```
+
+4. **Проверка работоспособности**
+   ```bash
+   # Проверка health endpoint
+   curl http://localhost:8000/health
+   
+   # Открытие интерфейса
+   open http://localhost:8501
+   ```
+
+### Локальная разработка
+
+Для локальной разработки без Docker:
+
+```bash
+# Установка зависимостей
+cd backend
+pip install -r requirements.txt
+
+# Настройка .env
+cp ../.env.example .env
+
+# Запуск FastAPI
+uvicorn app.main:app --reload --port 8000
+
+# Запуск Streamlit (в другом терминале)
+cd ../frontend
+streamlit run app.py
+```
+
+### Индексация базы знаний
+
+Перед первым использованием необходимо проиндексировать данные в ChromaDB:
+
+```bash
+# После запуска ChromaDB
+docker compose exec backend python -m scripts.index_knowledge_base
+```
+
+### Архитектура
+
+```
+trip-planner-ai/
+├── backend/                 # FastAPI backend
+│   ├── app/
+│   │   ├── agents/          # LangGraph orchestrator и узлы
+│   │   ├── tools/           # Инструменты (API интеграции)
+│   │   ├── retriever/       # ChromaDB клиент
+│   │   ├── models/          # Pydantic модели
+│   │   ├── config/          # Настройки
+│   │   ├── middleware/      # Circuit breaker
+│   │   └── main.py          # FastAPI приложение
+│   ├── tests/               # Тесты
+│   └── requirements.txt
+├── frontend/                # Streamlit UI
+│   └── app.py
+├── config/                  # Конфигурация инфраструктуры
+│   └── prometheus.yml
+├── docker-compose.yml       # Docker Compose конфигурация
+└── .env.example             # Пример переменных окружения
+```
+
+### Доступ к сервисам
+
+| Сервис | URL | Описание |
+|--------|-----|----------|
+| Streamlit UI | http://localhost:8501 | Пользовательский интерфейс |
+| FastAPI | http://localhost:8000 | Backend API |
+| API Docs | http://localhost:8000/docs | Swagger документация |
+| Prometheus | http://localhost:9090 | Метрики |
+| Grafana | http://localhost:3100 | Дашборды |
+| Langfuse | http://localhost:3000 | Observability |
+| ChromaDB | http://localhost:8100 | Vector DB |
+
+### Тестирование
+
+```bash
+# Запуск всех тестов
+cd backend
+pytest
+
+# Запуск с покрытием
+pytest --cov=app --cov-report=html
+
+# Запуск конкретного теста
+pytest tests/test_nodes/test_sanitizer.py
+```
+
+### Мониторинг
+
+- **Prometheus**: http://localhost:9090 - метрики системы
+- **Grafana**: http://localhost:3100 - визуализация метрик
+- **Langfuse**: http://localhost:3000 - трейсинг LLM вызовов
+
+### Остановка
+
+```bash
+docker compose down
+```
+
+Для удаления volumes:
+```bash
+docker compose down -v

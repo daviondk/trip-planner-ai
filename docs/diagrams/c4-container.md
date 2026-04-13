@@ -37,9 +37,10 @@ flowchart TB
         end
     end
 
-    yandexgpt[/"<b>YandexGPT API</b><br/>LLM + Embeddings"/]
-    mapsapi[/"<b>Google Maps API</b><br/>Places, Directions"/]
-    bookingapi[/"<b>Booking APIs</b><br/>Отели, билеты"/]
+    yandexgpt[/"<b>YandexGPT/OpenRouter API</b><br/>LLM + Embeddings"/]
+    orsapi[/"<b>OpenRouteService API</b><br/>Directions (бесплатно)"/]
+    amadeus[/"<b>Amadeus API</b><br/>Отели, рейсы (бесплатно)"/]
+    nominatim[/"<b>Nominatim (OSM)</b><br/>Geocoding (бесплатно)"/]
 
     traveler -- "HTTP :8501" --> streamlit
     streamlit -- "HTTP :8000<br/>REST JSON" --> fastapi

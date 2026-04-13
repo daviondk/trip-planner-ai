@@ -134,7 +134,7 @@ async def build_route(
     transport_mode: str = "driving",
     optimize_order: bool = False,
 ) -> RouteResult | ToolError:
-    """Построение маршрута через Google Maps Directions API."""
+    """Построение маршрута через OpenRouteService Directions API (бесплатный tier)."""
 ```
 
 **Модели данных:**
@@ -291,9 +291,10 @@ class ToolErrorType(str, Enum):
 
 | API | Лимит (PoC) | Действие при превышении |
 |:---|:---|:---|
-| Google Maps API | 100 запросов/день | Ожидание до следующего дня, fallback на текстовый маршрут |
-| Booking APIs | 60 запросов/минуту | Retry-After, очередь запросов |
-| YandexGPT API | По лимиту тарифа | Retry-After, circuit breaker |
+| OpenRouteService API | 2000 запросов/день | Ожидание до следующего дня, fallback на текстовый маршрут |
+| Amadeus APIs | 2000 вызовов/месяц | Retry-After, fallback на mock данные |
+| Nominatim (OSM) | 1 запрос/сек | Ожидание 1 сек между запросами |
+| YandexGPT/OpenRouter API | По лимиту тарифа | Retry-After, circuit breaker |
 
 ### PII в логах
 

@@ -1,0 +1,76 @@
+groups:
+  - name: trip_planner_alerts
+    interval: 30s
+    rules:
+      # Critical alerts
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+          service: fastapi
+        annotations:
+          summary: "High error rate on HTTP requests"
+          description: "Error rate is {{ $value }} errors/sec for the last 5 minutes"
+
+      - alert: CircuitBreakerOpen
+        expr: circuit_breaker_state{state="1"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          service: tools
+        annotations:
+          summary: "Circuit breaker is OPEN"
+          description: "Circuit breaker {{ $labels.name }} is in OPEN state"
+
+      - alert: HighLLMLatency
+        expr: histogram_quantile(0.95, rate(llm_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: critical
+          service: llm
+        annotations:
+          summary: "High LLM latency"
+          description: "p95 LLM latency is {{ $value }}s"
+
+      # Warning alerts
+      - alert: HighSessionCount
+        expr: active_sessions > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: sessions
+        annotations:
+          summary: "High number of active sessions"
+          description: "Active sessions count is {{ $value }}"
+
+      - alert: HighToolErrorRate
+        expr: rate(tool_errors_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: tools
+        annotations:
+          summary: "High tool error rate"
+          description: "Tool error rate is {{ $value }} errors/sec"
+
+      - alert: RetrieverDegraded
+        expr: rate(retriever_errors_total[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+          service: retriever
+        annotations:
+          summary: "Retriever experiencing high error rate"
+          description: "Retriever error rate is {{ $value }} errors/sec"
+
+      # Info alerts
+      - alert: LowRequestRate
+        expr: rate(http_requests_total[5m]) < 0.01
+        for: 10m
+        labels:
+          severity: info
+          service: fastapi
+        annotations:
+          summary: "Low request rate"
+          description: "Request rate is {{ $value }} requests/sec"
