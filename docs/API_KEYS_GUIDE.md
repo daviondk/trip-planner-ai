@@ -168,7 +168,26 @@ OPENTRIPMAP_TIMEOUT=10
 
 ## No API Key Required
 
-### 6. Nominatim (OpenStreetMap)
+### 8. Wikipedia (POI Descriptions)
+
+**Purpose:** Fetching descriptions and information about points of interest
+
+**Free Tier:** Completely free (no API key required)
+
+**Usage:**
+- No API key needed
+- Uses MediaWiki API via Python wikipedia library
+
+**Environment variables:**
+```bash
+# No configuration needed
+```
+
+**Documentation:** https://www.mediawiki.org/wiki/API
+
+---
+
+### 9. Nominatim (OpenStreetMap)
 
 **Purpose:** Geocoding (address ↔ coordinates) and POI search
 
@@ -257,6 +276,7 @@ LANGFUSE_SECRET=mysecret
 | OpenTripMap | 5000 requests/day | Contact for pricing |
 | OpenRouter | Free models | Pay per token for paid models |
 | YandexGPT | Limited free tier | ~$0.001-0.005 per 1K tokens |
+| Wikipedia | Unlimited (free) | Free |
 | Nominatim | 1 req/sec (free) | Free |
 | ChromaDB | Self-hosted (free) | Free |
 | Langfuse | Self-hosted (free) | Cloud pricing available |
